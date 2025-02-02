@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
-import { Form, Input, Button, message } from "antd"
+import { Form, Input, Button } from "antd"
 import { authService } from "../services/auth-service"
 import { useAuth } from "../contexts/auth-context"
 import type { SignInRequest } from "../types/auth"
@@ -11,18 +10,22 @@ import type { SignInRequest } from "../types/auth"
 export default function SignIn() {
   const navigate = useNavigate()
   const { setUser } = useAuth()
-  const [loading, setLoading] = useState(false)
+  const queryClient = useQueryClient()
 
   const signInMutation = useMutation({
-    mutationFn: (data: SignInRequest) => authService.signIn(data),
-    onSuccess: (data) => {
-      localStorage.setItem("token", data.token)
-      setUser(data.user)
-      message.success("Successfully signed in!")
+    mutationFn: async (data: SignInRequest) => {
+      const authResponse = await authService.signIn(data)
+      localStorage.setItem("token", authResponse.token)
+      const userInfo = await authService.getUserInfo()
+      return userInfo
+    },
+    onSuccess: (userInfo) => {
+      setUser(userInfo)
+      queryClient.setQueryData(["user"], userInfo)
       navigate("/companies")
     },
-    onError: (error) => {
-      message.error("Failed to sign in. Please check your credentials.")
+    onError: (_) => {
+      localStorage.removeItem("token")
     },
   })
 
@@ -31,39 +34,41 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
-        </div>
-        <Form name="sign-in" onFinish={onFinish} layout="vertical" className="mt-8 space-y-6">
-          <Form.Item label="Login" name="login" rules={[{ required: true, message: "Please input your login!" }]}>
-            <Input size="large" />
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/src/assets/bg.jpg')",
+      }}
+    >
+      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg text-center">
+        <h2 className="text-3xl font-bold mb-6">Вход</h2>
+        <Form name="sign-in" onFinish={onFinish} layout="vertical" requiredMark={false}>
+          <Form.Item name="login" rules={[{ required: true, message: "Введите логин" }]}>
+            <Input size="large" placeholder="Введите логин" className="rounded" />
           </Form.Item>
 
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: "Please input your password!" }]}
-          >
-            <Input.Password size="large" />
+          <Form.Item name="password" rules={[{ required: true, message: "Введите пароль" }]}>
+            <Input.Password size="large" placeholder="Введите пароль" className="rounded" />
           </Form.Item>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" size="large" className="w-full" loading={signInMutation.isPending}>
-              Sign in
-            </Button>
-          </Form.Item>
-
-          <div className="text-center">
-            <span className="text-gray-600">Don't have an account? </span>
-            <a onClick={() => navigate("/sign-up")} className="text-blue-600 hover:text-blue-500 cursor-pointer">
-              Sign up
+          <div className="flex justify-between items-center mb-4">
+            <a onClick={() => navigate("/sign-up")} className="text-blue-500 hover:text-blue-600 cursor-pointer">
+              Регистрация
             </a>
           </div>
+
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            loading={signInMutation.isPending}
+            className="w-full bg-green-500 hover:bg-green-600 rounded"
+          >
+            Вход
+          </Button>
         </Form>
       </div>
     </div>
   )
 }
-

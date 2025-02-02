@@ -11,15 +11,9 @@ export interface SignInRequest {
 
 export interface AuthResponse {
   token: string
-  user: {
-    id: string
-    fullName: string
-    login: string
-  }
 }
 
 export interface UserInfo {
-  id: string
   fullName: string
   login: string
 }

@@ -8,8 +8,8 @@ export const authService = {
   },
 
   async signIn(data: SignInRequest): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>("/auths/sign-in", data)
-    return response.data
+    const response = await apiClient.post<string>("/auths/sign-in", data)
+    return { token: response.data }
   },
 
   async getUserInfo(): Promise<UserInfo> {

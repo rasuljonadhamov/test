@@ -6,6 +6,8 @@ import { AuthProvider } from "./contexts/auth-context"
 import ProtectedRoute from "./components/protected-route"
 import SignIn from "./pages/sign-in"
 import SignUp from "./pages/sign-up"
+import Companies from "./pages/companies"
+import CompanyDetail from "./components/company-detail"
 
 const queryClient = new QueryClient()
 
@@ -18,10 +20,18 @@ export default function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route
-              path="/companies/*"
+              path="/companies"
               element={
                 <ProtectedRoute>
-                  <div>Companies Page</div>
+                  <Companies />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/companies/:id"
+              element={
+                <ProtectedRoute>
+                  <CompanyDetail />
                 </ProtectedRoute>
               }
             />
