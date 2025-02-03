@@ -26,20 +26,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const { data: userInfo, isLoading } = useQuery({
+  const {
+    data: userInfo,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["user"],
     queryFn: authService.getUserInfo,
     enabled: !!localStorage.getItem("token"),
     retry: false,
-    onError: () => {
-      localStorage.removeItem("token")
-      setUser(null)
-      if (window.location.pathname !== "/sign-in" && window.location.pathname !== "/sign-up") {
-        window.location.href = "/sign-in"
-      }
-    },
-    staleTime: 300000, 
-    cacheTime: 3600000, 
+    staleTime: 300000,
+    gcTime: 3600000,
   })
 
   useEffect(() => {
@@ -47,6 +44,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userInfo)
     }
   }, [userInfo])
+
+  useEffect(() => {
+    if (error) {
+      localStorage.removeItem("token")
+      setUser(null)
+      if (window.location.pathname !== "/sign-in" && window.location.pathname !== "/sign-up") {
+        window.location.href = "/sign-in"
+      }
+    }
+  }, [error])
 
   const logout = () => {
     authService.logout()

@@ -120,7 +120,7 @@ export default function CompaniesPage() {
           pagination={{
             pageSize: 10,
             showSizeChanger: false,
-            showTotal: false,
+            showTotal: (total: number) => `Всего: ${total}`,
             size: "small",
             className: "companies-pagination",
           }}
